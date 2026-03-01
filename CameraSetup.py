@@ -10,13 +10,14 @@ if not cam.isOpened():
 
 while True:
     #Capture each frame and return information (retrn)
-    retrn, frame = cap.read()
+    retrn, frame = cam.read()
 
     
     #---------optimisation  code go here __________#
 
     #display
-    
+    cv.imshow('Video',frame)
+    #exit
     exitKey= cv.waitKey(1)
     if exitKey == ord('l'):
         break
