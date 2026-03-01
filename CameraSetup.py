@@ -7,20 +7,30 @@ cam = cv.VideoCapture(0)
 class CamManage:
     #Contructor 
     def __init__(self, camInt=0, width = 640, height =480):    
-        self.setting = (width,height)
+        self.width = width
+        self.height = height
     
     #Setting/Further optimisation
-    def setting(self,width,height):
-        cam.resize(frame(width,height))
-         #---------optimisation  code go here __________#
+    def setting(self, frame):
+        frame = cv.resize(frame, (self.width,self.height))
+        frame =cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        return frame
+         #---------optimisation  code go here __________
+#null checks
+if not cam.isOpened():
+    print("Camera not connected")
+    exit()
 
+#Instantiating the class
+manager = CamManage()
 
 while True:
     #Capture each frame and return information (retrn)
     retrn, frame = cam.read()
 
+    #Calling setting
+    frame = manager.setting(frame)
     
-    CamManage.setting
 
     #display
     cv.imshow('Video',frame)
