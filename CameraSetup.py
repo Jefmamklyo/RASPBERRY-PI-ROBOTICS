@@ -1,19 +1,26 @@
 #import cv library and assign to variable cv
 import cv2 as cv
- 
-cam = cv.VideoCapture(0)
 
-#Null checks
-if not cam.isOpened():
-    print("Error: Canmera not connected")
-    exit()
+#Define camera
+cam = cv.VideoCapture(0)
+#Encapsulation class
+class CamManage:
+    #Contructor 
+    def __init__(self, camInt=0, width = 640, height =480):    
+        self.setting = (width,height)
+    
+    #Setting/Further optimisation
+    def setting(self,width,height):
+        cam.resize(frame(width,height))
+         #---------optimisation  code go here __________#
+
 
 while True:
     #Capture each frame and return information (retrn)
     retrn, frame = cam.read()
 
     
-    #---------optimisation  code go here __________#
+    CamManage.setting
 
     #display
     cv.imshow('Video',frame)
