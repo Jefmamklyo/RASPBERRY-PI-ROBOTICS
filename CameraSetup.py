@@ -9,12 +9,13 @@ class CamManage:
     #Contructor 
     def __init__(self, camInt=0, width = 640, height =480):    
         self.cam = cv.VideoCapture(0)
-        self.width = width
-        self.height = height
+        self.cam.set(cv.CAP_PROP_FRAME_WIDTH, width)
+        self.cam.set(cv.CAP_PROP_FRAME_HEIGHT, height)
         #---------Threading shared variables __________#
 
         self.frame = None #Stores captured frame and starts empty becuase no captured frame
         self.isRunning = False  #Thread loop running controls
+        self.RCP = threading.Lock() #RCP is race condition prevention
       
     def start(self):
         self.isRunning = True
@@ -29,16 +30,17 @@ class CamManage:
             ret, frame = self.cam.read()
             #if ret is true/ stream exists
             if ret:
-                self.frame= frame
+                with self.RCP:
+                    self.frame= frame
         
     #returnlatest frame stored in self.frame
     def read(self):
-        return self.frame
+        with self.RCP:
+            return self.frame
 
     #frame processing
     def setting(self, frame):
-        frame = cv.resize(frame, (self.width,self.height))
-        frame =cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
         return frame
          #---------optimisation  code go here __________
 
@@ -65,11 +67,16 @@ manager.start() #starts running the new thread
 while True:
     frame = manager.read()
 
-    #Optimiser
-    optimiser = manager.setting(frame)
+    
+    #redo the loop unitl frame iscaptured
+    if frame is None:
+        continue 
+
+    #optimiser
+    frame = manager.setting(frame)
     
     #display
-    cv.imshow('Video', optimiser)
+    cv.imshow('Video', frame)
 
     #exit
     exitKey= cv.waitKey(1)
