@@ -2,11 +2,12 @@
 import cv2 as cv
 
 #Define camera
-cam = cv.VideoCapture(0)
+
 #Encapsulation class
 class CamManage:
     #Contructor 
     def __init__(self, camInt=0, width = 640, height =480):    
+        self.cam = cv.VideoCapture(0)
         self.width = width
         self.height = height
     
@@ -16,17 +17,21 @@ class CamManage:
         frame =cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
         return frame
          #---------optimisation  code go here __________
-#null checks
-if not cam.isOpened():
-    print("Camera not connected")
-    exit()
+
 
 #Instantiating the class
 manager = CamManage()
 
+#null checks
+if not manager.cam.isOpened():
+    print("Camera not connected")
+    exit()
+
+
+
 while True:
     #Capture each frame and return information (retrn)
-    retrn, frame = cam.read()
+    retrn, frame = manager.cam.read()
 
     #Calling setting
     frame = manager.setting(frame)
