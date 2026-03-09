@@ -49,14 +49,10 @@ class CamManage:
         #Gauasian blur
         blur = cv.GaussianBlur(equalize, (5,5), 0)
 
-        sobelx = cv.Sobel(blur, cv.CV_64F, 1,0, ksize =3)
-        sobely = cv.Sobel(blur, cv.CV_64F, 0,1, ksize =3)
-
-        gradient = cv.magnitude(sobelx, sobely)
-        gradient = cv.convertScaleAbs(gradient)
+    
 
         #canny edge detction
-        edges = cv.Canny(gradient, 30,120)
+        edges = cv.Canny(blur, 30,120)
 
         #__________________NOT USED__________________#
         #Adaptive gausian threshold
@@ -66,20 +62,15 @@ class CamManage:
 
 
         #morphological transformations
-        kernal = cv.getStructuringElement(cv.MORPH_ELLIPSE,(5,5)) #create 5,5 ellipse kernal
-
-        closing = cv.morphologyEx(edges, cv.MORPH_CLOSE, kernal)
-        opening = cv.morphologyEx(closing, cv.MORPH_OPEN, kernal)
-
-        clean = cv.medianBlur(opening, 3)
+      
 
         #Hugh tranform
         #Parameters: Input, distancel resuliton, angle resultionms radians, line confidence, line segment lengjh, segment distance between eachother
         #smaller lines = smaller minlinelenght, noisy edges = increase threshold
-        lines = cv.HoughLinesP(clean, rho = 1, theta=np.pi/180, threshold =80, minLineLength = 60, maxLineGap = 5)
+        lines = cv.HoughLinesP(edges, rho = 1, theta=np.pi/180, threshold =50, minLineLength = 60, maxLineGap = 5)
 
         #draw lines
-        
+      
         if lines is not None:
             for line in lines:
                 x1, y1, x2, y2 = line [0]
