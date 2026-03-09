@@ -6,7 +6,7 @@ import numpy as np
 #Encapsulation class
 class CamManage:
     #Contructor 
-    def __init__(self, camInt=0, width = 640, height =640):    
+    def __init__(self, camInt=0, width = 320, height =240):    
         self.cam = cv.VideoCapture(camInt, cv.CAP_V4L2)
         self.cam.set(cv.CAP_PROP_FRAME_WIDTH, width)
         self.cam.set(cv.CAP_PROP_FRAME_HEIGHT, height)
@@ -15,6 +15,26 @@ class CamManage:
         self.frame = None #Stores captured frame and starts empty becuase no captured frame
         self.isRunning = False  #Thread loop running controls
         self.RCP = threading.Lock() #RCP is race condition prevention
+
+        #__________________Homography Matricies_______________#
+
+        self.srcPoints = np.float32([  #source points muilti dimenstional array
+
+            [100,140], #bottom left
+            [220,140], #bottom right
+            [300,220], #top left
+            [20,220]   #top right
+            ])
+
+        self.dstPoints = np.float32([ #destination points muilti dimenstional array
+
+            [100,140], #bottom left
+            [220,140], #bottom right
+            [300,220], #top left
+            [20,220]    #top right   
+        ])
+
+        self.HM = cv.getPerspectiveTransform(self.srcPoints, self.dstPoints)
       
     def start(self):
         self.isRunning = True
@@ -37,8 +57,16 @@ class CamManage:
         with self.RCP:
             return self.frame
 
+    #TopDownView function
+    def TopDownView(self,frame, ):
+        warped = cv.warpPerspective(frame, self.HM, (320, 240))
+
+
     #frame processing
     def preProcessing(self, frame):
+
+        #birds eye view
+        frame = self.TopDownView(frame)
         #graysacle
         gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 
