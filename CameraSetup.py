@@ -20,18 +20,18 @@ class CamManage:
 
         self.srcPoints = np.float32([  #source points muilti dimenstional array
 
-            [100,140], #bottom left
-            [220,140], #bottom right
-            [300,220], #top left
-            [20,220]   #top right
+            [100,140], #top left
+            [220, 140], #top right
+            [300,220], #bottom left
+            [20,220]   #bottom right
             ])
 
         self.dstPoints = np.float32([ #destination points muilti dimenstional array
 
-            [100,140], #bottom left
-            [220,140], #bottom right
-            [300,220], #top left
-            [20,220]    #top right   
+            [0,0], #bottom left
+            [320,0], #bottom right
+            [320,240], #top left
+            [0,240]    #top right   
         ])
 
         self.HM = cv.getPerspectiveTransform(self.srcPoints, self.dstPoints)
@@ -60,6 +60,7 @@ class CamManage:
     #TopDownView function
     def TopDownView(self,frame, ):
         warped = cv.warpPerspective(frame, self.HM, (320, 240))
+        return warped
 
 
     #frame processing
