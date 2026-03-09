@@ -46,6 +46,7 @@ class CamManage:
         clahe = cv.createCLAHE(clipLimit = 1.2, tileGridSize = (8,8))
         equalize = clahe.apply(gray)
 
+
         
         #Gauasian blur
         blur = cv.GaussianBlur(equalize, (5,5), 0)
@@ -54,7 +55,19 @@ class CamManage:
         #Parameters: Inputframe, pixelMaxValue (white), threshMethod, threshType (Binary), maximum neighborhood area, noise reductioun constant
         gThresh = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2)
 
-        return gThresh
+        #canny edge detction
+        edges = cv.Canny(gThresh, 50,150)
+
+        #morphological transformations
+        kernal = cv.getStructuringElement(cv.MORPH_ELLIPSE,(5,5)) #create 5,5 ellipse kernal
+
+        closing = cv.morphologyEx(edges, cv.MORPH_CLOSE, kernal)
+        opening = cv.morphologyEx(closing, cv.MORPH_OPEN, kernal)
+
+        median = cv.medianBlur(opening, 5)
+
+
+        return median
 
 
     def stop(self):
