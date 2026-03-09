@@ -46,17 +46,24 @@ class CamManage:
         clahe = cv.createCLAHE(clipLimit = 1.2, tileGridSize = (8,8))
         equalize = clahe.apply(gray)
 
-
-        
         #Gauasian blur
         blur = cv.GaussianBlur(equalize, (5,5), 0)
 
-        #Adaptive gausian threshold
-        #Parameters: Inputframe, pixelMaxValue (white), threshMethod, threshType (Binary), maximum neighborhood area, noise reductioun constant
-        gThresh = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2)
+        sobelx = cv.Sobel(blur, cv.CV_64F, 1,0, ksize =3)
+        sobely = cv.Sobel(blur, cv.CV_64F, 0,1, ksize =3)
+
+        gradient = cv.magnitude(sobelx, sobely)
+        gradient = cv.convertScaleAbs(gradient)
 
         #canny edge detction
-        edges = cv.Canny(gThresh, 50,150)
+        edges = cv.Canny(gradient, 30,120)
+
+        #__________________NOT USED__________________#
+        #Adaptive gausian threshold
+        #Parameters: Inputframe, pixelMaxValue (white), threshMethod, threshType (Binary), maximum neighborhood area, noise reductioun constant
+        #gThresh = cv.adaptiveThreshold(edges, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2)
+        #__________________NOT USED__________________#
+
 
         #morphological transformations
         kernal = cv.getStructuringElement(cv.MORPH_ELLIPSE,(5,5)) #create 5,5 ellipse kernal
@@ -64,18 +71,21 @@ class CamManage:
         closing = cv.morphologyEx(edges, cv.MORPH_CLOSE, kernal)
         opening = cv.morphologyEx(closing, cv.MORPH_OPEN, kernal)
 
-        median = cv.medianBlur(opening, 5)
+        clean = cv.medianBlur(opening, 3)
 
         #Hugh tranform
         #Parameters: Input, distancel resuliton, angle resultionms radians, line confidence, line segment lengjh, segment distance between eachother
         #smaller lines = smaller minlinelenght, noisy edges = increase threshold
-        hugh = cv.HoughLinesP(median, rho = 1, theta=np.pi/180, threshold =50, minLineLength = 40, maxLineGap = 20)
+        lines = cv.HoughLinesP(clean, rho = 1, theta=np.pi/180, threshold =80, minLineLength = 60, maxLineGap = 5)
 
         #draw lines
-        if hugh is not None:
-            for line in hugh:
+        
+        if lines is not None:
+            for line in lines:
                 x1, y1, x2, y2 = line [0]
-                cv.line(hugh, (x1,y1), (x2,y2), (0,255,0),2) 
+                cv.line(frame,(x1,y1), (x2,y2), (0,255,0),2) 
+            
+        return frame
 
         
 
