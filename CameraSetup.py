@@ -6,8 +6,8 @@ import numpy as np
 #Encapsulation class
 class CamManage:
     #Contructor 
-    def __init__(self, camInt=0, width = 640, height =480):    
-        self.cam = cv.VideoCapture(0)
+    def __init__(self, camInt=0, width = 640, height =640):    
+        self.cam = cv.VideoCapture(camInt, cv.CAP_V4L2)
         self.cam.set(cv.CAP_PROP_FRAME_WIDTH, width)
         self.cam.set(cv.CAP_PROP_FRAME_HEIGHT, height)
         #---------Threading shared variables __________#
@@ -49,21 +49,9 @@ class CamManage:
         #Gauasian blur
         blur = cv.GaussianBlur(equalize, (5,5), 0)
 
-    
-
         #canny edge detction
         edges = cv.Canny(blur, 30,120)
-
-        #__________________NOT USED__________________#
-        #Adaptive gausian threshold
-        #Parameters: Inputframe, pixelMaxValue (white), threshMethod, threshType (Binary), maximum neighborhood area, noise reductioun constant
-        #gThresh = cv.adaptiveThreshold(edges, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2)
-        #__________________NOT USED__________________#
-
-
-        #morphological transformations
       
-
         #Hugh tranform
         #Parameters: Input, distancel resuliton, angle resultionms radians, line confidence, line segment lengjh, segment distance between eachother
         #smaller lines = smaller minlinelenght, noisy edges = increase threshold
@@ -121,5 +109,5 @@ while True:
         break
     
 #exit sequence
-manager.stop() #automatically releases the camera
+manager.stop() #automatically releases the cameras
 cv.destroyAllWindows()
