@@ -1,8 +1,7 @@
 #import cv library and assign to variable cv
-#Import threading
 import cv2 as cv
 import threading
-import time
+import numpy as np
 
 #Encapsulation class
 class CamManage:
@@ -42,8 +41,14 @@ class CamManage:
     def preProcessing(self, frame):
         #graysacle
         gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+
+        #CLAHE
+        clahe = cv.createCLAHE(clipLimit = 1.2, tileGridSize = (8,8))
+        equalize = clahe.apply(gray)
+
+        
         #Gauasian blur
-        blur = cv.GaussianBlur(gray, (5,5), 0)
+        blur = cv.GaussianBlur(equalize, (5,5), 0)
 
         #Adaptive gausian threshold
         #Parameters: Inputframe, pixelMaxValue (white), threshMethod, threshType (Binary), maximum neighborhood area, noise reductioun constant
