@@ -89,7 +89,7 @@ class CamManage:
         opening = cv.morphologyEx(closing, cv.MORPH_OPEN, kernal)
         median = cv.medianBlur(opening, 5)
 
-        return frame
+        return median
 
 
     def stop(self):
@@ -121,11 +121,10 @@ while True:
         continue 
 
     #optimiser
-    frame2 = manager.preProcessing(frame)
+    frame = manager.preProcessing(frame)
     
     #display
     cv.imshow("video1", frame)
-    cv.imshow('Video', frame2)
     #exit
     exitKey= cv.waitKey(1)
     if exitKey == ord('l'):
