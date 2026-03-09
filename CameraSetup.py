@@ -66,8 +66,18 @@ class CamManage:
 
         median = cv.medianBlur(opening, 5)
 
+        #Hugh tranform
+        #Parameters: Input, distancel resuliton, angle resultionms radians, line confidence, line segment lengjh, segment distance between eachother
+        #smaller lines = smaller minlinelenght, noisy edges = increase threshold
+        hugh = cv.HoughLinesP(median, rho = 1, theta=np.pi/180, threshold =50, minLineLength = 40, maxLineGap = 20)
 
-        return median
+        #draw lines
+        if hugh is not None:
+            for line in hugh:
+                x1, y1, x2, y2 = line [0]
+                cv.line(hugh, (x1,y1), (x2,y2), (0,255,0),2) 
+
+        
 
 
     def stop(self):
