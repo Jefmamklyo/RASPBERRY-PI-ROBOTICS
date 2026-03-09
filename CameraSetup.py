@@ -78,24 +78,18 @@ class CamManage:
         #Gauasian blur
         blur = cv.GaussianBlur(equalize, (5,5), 0)
 
+        #gthresh
+        gThresh = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11,2)
+
         #canny edge detction
-        edges = cv.Canny(blur, 30,120)
+        edges = cv.Canny(gThresh, 30,120)
       
-        #Hugh tranform
-        #Parameters: Input, distancel resuliton, angle resultionms radians, line confidence, line segment lengjh, segment distance between eachother
-        #smaller lines = smaller minlinelenght, noisy edges = increase threshold
-        lines = cv.HoughLinesP(edges, rho = 1, theta=np.pi/180, threshold =50, minLineLength = 60, maxLineGap = 5)
+        kernal = cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5))
+        closing = cv.morphologyEx(edges, cv.MORPH_CLOSE, kernal)
+        opening = cv.morphologyEx(closing, cv.MORPH_OPEN, kernal)
+        median = cv.medianBlur(opening, 5)
 
-        #draw lines
-      
-        if lines is not None:
-            for line in lines:
-                x1, y1, x2, y2 = line [0]
-                cv.line(frame,(x1,y1), (x2,y2), (0,255,0),2) 
-            
         return frame
-
-        
 
 
     def stop(self):
@@ -127,11 +121,11 @@ while True:
         continue 
 
     #optimiser
-    frame = manager.preProcessing(frame)
+    frame2 = manager.preProcessing(frame)
     
     #display
-    cv.imshow('Video', frame)
-
+    cv.imshow("video1", frame)
+    cv.imshow('Video', frame2)
     #exit
     exitKey= cv.waitKey(1)
     if exitKey == ord('l'):
