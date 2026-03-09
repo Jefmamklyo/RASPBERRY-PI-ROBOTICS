@@ -2,7 +2,7 @@
 #Import threading
 import cv2 as cv
 import threading
-
+import time
 
 #Encapsulation class
 class CamManage:
@@ -39,10 +39,18 @@ class CamManage:
             return self.frame
 
     #frame processing
-    def setting(self, frame):
-        frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-        return frame
-         #---------optimisation  code go here __________
+    def preProcessing(self, frame):
+        #graysacle
+        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        #Gauasian blur
+        blur = cv.GaussianBlur(gray, (5,5), 0)
+
+        #Adaptive gausian threshold
+        #Parameters: Inputframe, pixelMaxValue (white), threshMethod, threshType (Binary), maximum neighborhood area, noise reductioun constant
+        gThresh = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2)
+
+        return gThresh
+
 
     def stop(self):
         self.isRunning = False
@@ -68,12 +76,12 @@ while True:
     frame = manager.read()
 
     
-    #redo the loop unitl frame iscaptured
+    #redo the loop unitl frame is captured
     if frame is None:
         continue 
 
     #optimiser
-    frame = manager.setting(frame)
+    frame = manager.preProcessing(frame)
     
     #display
     cv.imshow('Video', frame)
