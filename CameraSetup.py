@@ -79,7 +79,7 @@ class CamManage:
         blur = cv.GaussianBlur(equalize, (5,5), 0)
 
         #gthresh
-        gThresh = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11,2)
+        gThresh = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY , 11,2)
 
         #canny edge detction
         edges = cv.Canny(gThresh, 30,120)
