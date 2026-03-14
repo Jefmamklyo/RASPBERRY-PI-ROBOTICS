@@ -34,19 +34,19 @@ class CamManage:
 
         return closing
     
-    def centroid(self, img):
-        
-
+    def centroidCalculations(self, img):
         #get countours in proceed image
         contours, heirarchy = cv.findContours(img, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
 
-        C = []
+        foundCentroids = 1
         for x in contours:
-            z = 1
+            
             if cv.contourArea(x) > 100:
-                print(f"Large controid found: ", 1)
-                z+=1
-
+                print(f"Large controid found: ", foundCentroids)
+                foundCentroids +=1
+    
+        centroids = []
+        #show contour centroids
         for i in contours:
             if cv.contourArea(i) > 100:
                 M = cv.moments(i)
@@ -55,8 +55,19 @@ class CamManage:
                     cy = int(M['m01']/ M['m00'])
                     cv.drawContours(self.originalImg, [i], -1, (0,255,0), 2)
                     cv.circle(self.originalImg, (cx,cy), 7, (0,255,255), -1)
-                    print(f"x: {cx} y: {cy}")
-                    print (str(len(contours)))
+                    appending = [cx,cy]
+                    centroids.append(appending)
+                    print(f"Controid at x: {cx} y: {cy}")
+                 
+        #find centroids midpoint
+        for i in range(len(centroids) - 1):
+            cx1,cy1 = centroids[i]
+            cx2,cy2  = centroids[i+1]
+            midpointX = (cx2 + cx1) / 2
+            midpointY = (cy2+cy1) / 2
+            cv.circle(self.originalImg, (midpointX,midpointY), 7, (0,255,255), -1)
+
+
 
         cv.imshow("Controid img", self.originalImg)
         cv.waitKey(0)
@@ -70,15 +81,12 @@ manager = CamManage()
 
 
 
-#Main threa
-img = manager.img
- 
 #optimiser
-img = manager.preProcessing()
+Pimg = manager.preProcessing()
 
 #display
-cv.imshow("video1", img)
-manager.centroid(img)
+cv.imshow("video1", Pimg)
+manager.centroidCalculations(Pimg)
 
 #exit
 exitKey= cv.waitKey(0)
