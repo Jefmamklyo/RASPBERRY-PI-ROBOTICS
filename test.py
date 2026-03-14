@@ -27,27 +27,51 @@ class CamManage:
         #canny edge detction
         edges = cv.Canny(gThresh, 50,150)
 
-        return edges
+        #closgin pening
+        kernal = cv.getStructuringElement(cv.MORPH_ELLIPSE, (10,10))
+        closing = cv.morphologyEx(edges, cv.MORPH_CLOSE, kernal, iterations = 3)
+
+        return closing
+    
+    def centroid(self, img):
+        
+
+        #get countours in proceed image
+        contours, heirarchy = cv.findContours(img, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+
+        print (str(len(contours)))
+        for i in contours:
+            M = cv.moments(i)
+            if M['m00'] != 0:
+                cx = int(M['m10']/M['m00'])
+                cy = int(M['m01']/ M['m00'])
+                cv.drawContours(img, [i], -1, (0,255,0), 2)
+                cv.circle(img, (cx,cy), 7, (0,255,255), -1)
+            print(f"x: {cx} y: {cy}")
+
+        #loop and calcuatie centroid for each one
+        
+
+
 
 #Instantiating the class
 manager = CamManage()
 
 
+#optimiser
+img = manager.preProcessing()
 
-#Main thread
+#display
+cv.imshow("video1", img)
+manager.centroid(img)
+
+#exit
+exitKey= cv.waitKey(1)
+
+
+
 while True: 
-    img = manager.img
-  
-    #optimiser
-    img = manager.preProcessing()
-    
-    #display
-    cv.imshow("video1", img)
-
-    #exit
-    exitKey= cv.waitKey(1)
     if exitKey == ord('l'):
+        cv.destroyAllWindows()
         break
-    
 #exit sequence
-cv.destroyAllWindows()
