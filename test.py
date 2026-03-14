@@ -38,12 +38,12 @@ class CamManage:
         #get countours in proceed image
         contours, heirarchy = cv.findContours(img, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
 
-        foundCentroids = 1
+        foundCanny = 1
         for x in contours:
             
             if cv.contourArea(x) > 100:
-                print(f"Large controid found: ", foundCentroids)
-                foundCentroids +=1
+                print(f"Large Canny found: ", foundCanny)
+                foundCanny +=1
     
         centroids = []
         #show contour centroids
@@ -63,9 +63,9 @@ class CamManage:
         for i in range(len(centroids) - 1):
             cx1,cy1 = centroids[i]
             cx2,cy2  = centroids[i+1]
-            midpointX = (cx2 + cx1) / 2
-            midpointY = (cy2+cy1) / 2
-            cv.circle(self.originalImg, (midpointX,midpointY), 7, (0,255,255), -1)
+            midpointX = int((cx2 + cx1) / 2)
+            midpointY = int((cy2+cy1) / 2)
+            cv.circle(self.originalImg, (midpointX,midpointY), 7, (0,0,255), -1)
 
 
 
