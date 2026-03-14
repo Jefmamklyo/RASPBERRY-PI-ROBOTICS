@@ -8,6 +8,7 @@ class CamManage:
     #Contructor 
     def __init__(self):    
         self.img = cv.imread("/home/aakash/programming/PrototypeProject/Track-for-Autonomous-Lane-Detection-Car-2345030835.jpg")
+        self.originalImg =self.img.copy()
 
  
     #frame processing
@@ -39,16 +40,26 @@ class CamManage:
         #get countours in proceed image
         contours, heirarchy = cv.findContours(img, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
 
-        print (str(len(contours)))
-        for i in contours:
-            M = cv.moments(i)
-            if M['m00'] != 0:
-                cx = int(M['m10']/M['m00'])
-                cy = int(M['m01']/ M['m00'])
-                cv.drawContours(img, [i], -1, (0,255,0), 2)
-                cv.circle(img, (cx,cy), 7, (0,255,255), -1)
-            print(f"x: {cx} y: {cy}")
+        C = []
+        for x in contours:
+            z = 1
+            if cv.contourArea(x) > 100:
+                print(f"Large controid found: ", 1)
+                z+=1
 
+        for i in contours:
+            if cv.contourArea(i) > 100:
+                M = cv.moments(i)
+                if M['m00'] != 0:
+                    cx = int(M['m10']/M['m00'])
+                    cy = int(M['m01']/ M['m00'])
+                    cv.drawContours(self.originalImg, [i], -1, (0,255,0), 2)
+                    cv.circle(self.originalImg, (cx,cy), 7, (0,255,255), -1)
+                    print(f"x: {cx} y: {cy}")
+                    print (str(len(contours)))
+
+        cv.imshow("Controid img", self.originalImg)
+        cv.waitKey(0)
         #loop and calcuatie centroid for each one
         
 
@@ -58,6 +69,10 @@ class CamManage:
 manager = CamManage()
 
 
+
+#Main threa
+img = manager.img
+ 
 #optimiser
 img = manager.preProcessing()
 
@@ -66,12 +81,10 @@ cv.imshow("video1", img)
 manager.centroid(img)
 
 #exit
-exitKey= cv.waitKey(1)
+exitKey= cv.waitKey(0)
 
 
-
-while True: 
-    if exitKey == ord('l'):
-        cv.destroyAllWindows()
-        break
+if exitKey == ord('l'):
+    cv.destroyAllWindows()
+    
 #exit sequence
