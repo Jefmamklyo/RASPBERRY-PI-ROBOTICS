@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 
 
 
-
 class PIDController():
     def __init__(self, Kp, Ki, Kd, setpoint):
         #tuning parameytrers
@@ -17,20 +16,41 @@ class PIDController():
         #stater variables
         self.setpoint = setpoint
         self.previousError = 0
+        
+
+
+        #integral 
         self.integral = 0
+        self.integralMin = -50
+        self.integralMax = 50
+        
+        #Derivitive
+        self.derivitive = 0
+        self.lpf = 0.8 #low pass filter
+
+
+
     def update(self, processVariable, dt):
         #calucate erroir
         error = self.setpoint - processVariable
+
         #calucate proportional term
         P = self.Kp * error
+
         #calculate integral term
         self.integral += error * dt #acculametale integral adn keep it time consistant
+        self.integral = max(self.integralMin, min(self.integral, self.integralMax)) #clamping
         I = self.Ki * self.integral
+
+
         #calculate derivitve term
-        derivitive = (error-self.previousError) / dt
-        D = self.Kd * derivitive
+        rawDerivitive = (error-self.previousError) / dt
+        self.derivitive = (self.lpf * rawDerivitive) + ((1-self.lpf) * self.derivitive)
+        D = self.Kd * self.derivitive
+
         #compute output
         output = P + I + D
+
         #update error
         self.previousError = error
         return output
@@ -74,8 +94,8 @@ plt.figure(figsize = (10,6))
 plt.plot(time, values, label = "values (currentValue)")
 plt.axhline(y = setpoint, color = 'r', linestyle = '--', label ='Setpoint' )
 plt.xlabel = ('Time (s)')
-plt.ylabel("currentValue")
-plt.title("PID current bvalue graph")
+plt.ylabel("currentValue") 
+plt.title("PID Graph. Correction over time")
 plt.legend()
 plt.grid()
 plt.show()
