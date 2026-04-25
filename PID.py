@@ -1,5 +1,6 @@
 import time
-
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 
@@ -35,15 +36,23 @@ class PIDController():
         return output
 
 
-pid = PIDController(Kp = 1.1, Ki = 0.1, Kd = 0.5, setpoint= 100)
+setpoint = 100
+
+pid = PIDController(Kp = 1.1, Ki = 0.1, Kd = 0.5, setpoint= setpoint)
 
 #MAIN LOOP
 
 ##add a timer soi it only runs for so long before storing everyting in an array and plotting values 
 currentValue = 180
+#simulate parameters
 
-while True:
-    dt = 0.1
+time = np.linspace(0,30,100) #10 sec, 100 steps
+dt = time[1] - time[0]
+
+#list for ploitting
+values = []
+
+for t in time:
 
 
     measurement = currentValue
@@ -57,5 +66,16 @@ while True:
 
     #print simulatiVn
     print(f"Setpoint is: {pid.setpoint} ||| CurrentValue: {currentValue:.2f} ||| Correction: {_update:.2f}")
-    #sleep so it dosn'et constatnly poll
-    time.sleep(dt)
+
+    values.append(currentValue)
+
+#plotting results
+plt.figure(figsize = (10,6))
+plt.plot(time, values, label = "values (currentValue)")
+plt.axhline(y = setpoint, color = 'r', linestyle = '--', label ='Setpoint' )
+plt.xlabel = ('Time (s)')
+plt.ylabel("currentValue")
+plt.title("PID current bvalue graph")
+plt.legend()
+plt.grid()
+plt.show()
