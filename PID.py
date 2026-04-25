@@ -45,7 +45,7 @@ class PIDController():
 
         #calculate derivitve term
         rawDerivitive = (error-self.previousError) / dt
-        self.derivitive = (self.lpf * rawDerivitive) + ((1-self.lpf) * self.derivitive)
+        self.derivitive = (self.lpf * self.derivitive) + ((1-self.lpf) * rawDerivitive)
         D = self.Kd * self.derivitive
 
         #compute output
@@ -93,7 +93,7 @@ for t in time:
 plt.figure(figsize = (10,6))
 plt.plot(time, values, label = "values (currentValue)")
 plt.axhline(y = setpoint, color = 'r', linestyle = '--', label ='Setpoint' )
-plt.xlabel = ('Time (s)')
+plt.xlabel('Time (s)')
 plt.ylabel("currentValue") 
 plt.title("PID Graph. Correction over time")
 plt.legend()
