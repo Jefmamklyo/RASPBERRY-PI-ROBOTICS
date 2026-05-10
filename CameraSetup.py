@@ -135,11 +135,25 @@ class CamManage:
         frame2 = frame.copy()
 
         
-        #graysacle
-        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        #hsv
+        hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+        
+        #lower range RED
+
+        lowerRed1 = np.array([0,120,70])
+        upperRed1 = np.array([10,255,255])
+
+        #higher range RED
+        lowerRed2 = np.array([170, 120, 70])
+        upperRed2 = np.array([180, 255,255])
+
+        mask1 = cv.inRange(hsv, lowerRed1, upperRed1)
+        mask2 = cv.inRange(hsv, lowerRed2, upperRed2)
+        mask = mask1 + mask2
+
 
         #Gauasian blur
-        blur = cv.GaussianBlur(gray, (5,5), 0)
+        blur = cv.GaussianBlur(mask, (5,5), 0)
 
         #gthresh
         _, thresh = cv.threshold(blur, 180, 255, cv.THRESH_BINARY)
@@ -151,7 +165,7 @@ class CamManage:
         closing = cv.morphologyEx(edges, cv.MORPH_CLOSE, kernal)
         opening = cv.morphologyEx(closing, cv.MORPH_OPEN, kernal)
 
-        return opening, frame2
+        return closing, frame2, mask
 
   
 
@@ -250,7 +264,7 @@ while True:
     displayFrame = frame.copy()
 
     #optimiser
-    processedFrame, displayFrame  = manager.preProcessing(frame)
+    processedFrame, displayFrame, maskFrame  = manager.preProcessing(frame)
 
     #Find midpoints
     midpointX, midpointY = manager.centroidCalculations(processedFrame, displayFrame)
@@ -274,6 +288,7 @@ while True:
     #display
     cv.imshow("Processed Video", processedFrame)
     cv.imshow("Original Video", displayFrame)
+    cv.imshow("Mask", maskFrame)
     #exit
     exitKey= cv.waitKey(1)
     if exitKey == ord('l'):
