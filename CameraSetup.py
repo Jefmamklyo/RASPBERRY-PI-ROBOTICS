@@ -3,7 +3,68 @@ import cv2 as cv
 import threading
 import numpy as np
 
-#Encapsulation class
+###PID ENCAPSULATION ClASS #####
+#______________________________#
+import time
+
+
+
+
+
+class PIDController():
+    def __init__(self, Kp, Ki, Kd, setpoint):
+        #tuning parameytrers
+        self.Kp = Kp
+        self.Ki = Ki
+        self.Kd = Kd
+
+        #stater variables
+        self.setpoint = setpoint
+        self.previousError = 0
+        
+
+
+        #integral 
+        self.integral = 0
+        self.integralMin = -50
+        self.integralMax = 50
+        
+        #Derivitive
+        self.derivitive = 0
+        self.lpf = 0.8 #low pass filter
+
+
+
+    def update(self, processVariable, dt):
+        #calucate erroir
+        error = self.setpoint - processVariable
+
+        #calucate proportional term
+        P = self.Kp * error
+
+        #calculate integral term
+        self.integral += error * dt #acculametale integral adn keep it time consistant
+        self.integral = max(self.integralMin, min(self.integral, self.integralMax)) #clamping
+        I = self.Ki * self.integral
+
+
+        #calculate derivitve term
+        rawDerivitive = (error-self.previousError) / dt
+        self.derivitive = (self.lpf * self.derivitive) + ((1-self.lpf) * rawDerivitive)
+        D = self.Kd * self.derivitive
+
+        #compute output
+        output = P + I + D
+
+        #update error
+        self.previousError = error
+        return output
+
+
+
+###################################
+#Camera Encapsulation class #######
+###################################
 class CamManage:
     #Contructor 
     def __init__(self, camInt=0, width = 320, height =320):    
@@ -77,26 +138,21 @@ class CamManage:
         #graysacle
         gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 
-        #CLAHE
-        clahe = cv.createCLAHE(clipLimit = 1.2, tileGridSize = (8,8))
-        equalize = clahe.apply(gray)
-
         #Gauasian blur
-        blur = cv.GaussianBlur(equalize, (5,5), 0)
+        blur = cv.GaussianBlur(gray, (5,5), 0)
 
         #gthresh
         gThresh = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY , 11,2)
 
         #canny edge detction
-        edges = cv.Canny(gThresh, 30,120)
+        edges = cv.Canny(gThresh, 50,150)
       
-        kernal = cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5))
+        kernal = cv.getStructuringElement(cv.MORPH_ELLIPSE, (2,2))
         closing = cv.morphologyEx(edges, cv.MORPH_CLOSE, kernal)
-        opening = cv.morphologyEx(closing, cv.MORPH_OPEN, kernal)
-        median = cv.medianBlur(opening, 5)
 
-        return median, frame2
+        return closing, frame2
 
+  
 
     def stop(self):
         self.isRunning = False
@@ -104,6 +160,54 @@ class CamManage:
         self.thread.join()
         self.cam.release()
 
+
+    ###########################
+    ####Lane Detection ########
+    ###########################
+    def centroidCalculations(self, processedFrame, displayFrame):
+        #get countours in proceed image
+        contours, heirarchy = cv.findContours(processedFrame, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+
+        foundCanny = 1
+        for x in contours:
+            
+            if cv.contourArea(x) > 100:
+                print(f"Large Canny found: ", foundCanny)
+                foundCanny +=1
+
+        centroids = []
+        #show contour centroids
+        for i in contours:
+            if cv.contourArea(i) > 100:
+                M = cv.moments(i)
+                if M['m00'] != 0:
+                    cx = int(M['m10']/M['m00'])
+                    cy = int(M['m01']/ M['m00'])
+                    cv.drawContours(displayFrame, [i], -1, (0,255,0), 2)
+                    cv.circle(displayFrame, (cx,cy), 7, (0,255,255), -1)
+                    appending = [cx,cy]
+                    centroids.append(appending)
+                    print(f"Controid at x: {cx} y: {cy}")
+                    
+        #find centroids midpoint
+        for i in range(len(centroids) - 1):
+            cx1,cy1 = centroids[i]
+            cx2,cy2  = centroids[i+1]
+            midpointX = int((cx2 + cx1) / 2)
+            midpointY = int((cy2+cy1) / 2)
+            cv.circle(displayFrame, (midpointX,midpointY), 7, (0,0,255), -1)
+
+
+
+        return midpointX, midpointY
+        #loop and calcuatie centroid for each one
+        
+
+
+
+################################################################################################################################################################################################
+################################ MAINLOOP MAINLOOP MAINLOOP MAINLOOP MAINLOOP ##################################################################################################################
+################################################################################################################################################################################################
 
 
 #Instantiating the class
@@ -116,8 +220,16 @@ if not manager.cam.isOpened():
 
 manager.start() #starts running the new thread
 
+#PID SETUP
 
-#Main thread
+frameCenter = 160
+
+pid = PIDController( Kp=0.6, Ki = 0.01, Kd=0.2, setpoint= frameCenter)
+
+prevTime = time.time()
+
+#serial setuip here
+
 while True:
     frame = manager.read()
     
@@ -125,12 +237,28 @@ while True:
     if frame is None:
         continue 
 
+
+    #for display
+    displayFrame = frame.copy()
+
     #optimiser
-    frame, frame2 = manager.preProcessing(frame)
+    frame  = manager.preProcessing(frame)
+
+    #Find midpoints
+    midpointX, midpointY = manager.centroidCalculations(frame, displayFrame)
+
+    #PID calc
+    currentTime = time.time()
+    dt = currentTime - prevTime
+    prevTime = currentTime
+
+    if midpointX is not None:
+        correction = pid.update(midpointX, dt)
+        print(correction)
     
     #display
     cv.imshow("Processed Video", frame)
-    cv.imshow("Original Video", frame2)
+    cv.imshow("Original Video", displayFrame)
     #exit
     exitKey= cv.waitKey(1)
     if exitKey == ord('l'):
