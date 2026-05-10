@@ -3,6 +3,9 @@ import cv2 as cv
 import threading
 import numpy as np
 
+import serial
+
+
 ###PID ENCAPSULATION ClASS #####
 #______________________________#
 import time
@@ -159,11 +162,9 @@ class CamManage:
         _, thresh = cv.threshold(blur, 180, 255, cv.THRESH_BINARY)
 
         #canny edge detction
-        edges = cv.Canny(thresh, 50,150)
       
-        kernal = cv.getStructuringElement(cv.MORPH_RECT, (5,5))
-        closing = cv.morphologyEx(edges, cv.MORPH_CLOSE, kernal)
-        opening = cv.morphologyEx(closing, cv.MORPH_OPEN, kernal)
+        kernal = cv.getStructuringElement(cv.MORPH_RECT, (7,7))
+        closing = cv.morphologyEx(thresh, cv.MORPH_CLOSE, kernal)
 
         return closing, frame2, mask
 
@@ -184,7 +185,7 @@ class CamManage:
         contours, heirarchy = cv.findContours(processedFrame, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
 
 
-        tuningNumber = 50
+        tuningNumber = 300
 
 
         foundCanny = 1
@@ -250,7 +251,10 @@ pid = PIDController( Kp=0.6, Ki = 0.01, Kd=0.2, setpoint= frameCenter)
 
 prevTime = time.time()
 
-#serial setuip here
+#serial setuip 
+ser = serial.Serial('/dev/ttyACM0', 9600, timeout = 1)
+command = None
+
 
 while True:
     frame = manager.read()
@@ -274,11 +278,26 @@ while True:
     dt = currentTime - prevTime
     prevTime = currentTime
 
+   
+
     if midpointX is not None:
         correction = pid.update(midpointX, dt)
 
+        if correction > 20:
+            command = "L"
+        if correction < -20:
+            command = "R"
+        else: 
+            command = "F"
+
+        ser.write(command.encode('utf-8')) 
+
+
+
         error = frameCenter - midpointX
 
+
+        print(f"Sent {command}")
         print(f"Correction {correction:.2f}")
         print(f"Error {error}")
         print(f"midpoint {midpointX}")
