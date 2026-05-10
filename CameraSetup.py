@@ -6,7 +6,7 @@ import numpy as np
 #Encapsulation class
 class CamManage:
     #Contructor 
-    def __init__(self, camInt=0, width = 320, height =240):    
+    def __init__(self, camInt=0, width = 320, height =320):    
         self.cam = cv.VideoCapture(camInt, cv.CAP_V4L2)
         self.cam.set(cv.CAP_PROP_FRAME_WIDTH, width)
         self.cam.set(cv.CAP_PROP_FRAME_HEIGHT, height)
@@ -20,18 +20,18 @@ class CamManage:
 
         self.srcPoints = np.float32([  #source points muilti dimenstional array
 
-            [100,140], #top left
-            [220, 140], #top right
-            [300,220], #bottom left
-            [20,220]   #bottom right
+            [0,0], #top left
+            [320,0], #top right
+            [320,320], #bottom right
+            [0,320]   #bottom left
             ])
 
         self.dstPoints = np.float32([ #destination points muilti dimenstional array
 
-            [0,0], #bottom left
-            [320,0], #bottom right
-            [320,240], #top left
-            [0,240]    #top right   
+            [100,50], #top left
+            [220,50], #top right
+            [320,320], #bottom left
+            [0,320]    #bottom right   
         ])
 
         self.HM = cv.getPerspectiveTransform(self.srcPoints, self.dstPoints)
@@ -62,12 +62,18 @@ class CamManage:
         warped = cv.warpPerspective(frame, self.HM, (320, 240))
         return warped
 
-
+    def frame2(self, frame):
+        frameTwo = self.TopDownView(frame)
+        return frameTwo
+    
     #frame processing
     def preProcessing(self, frame):
 
         #birds eye view
         frame = self.TopDownView(frame)
+        frame2 = self.TopDownView(frame)
+
+        
         #graysacle
         gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 
@@ -89,7 +95,7 @@ class CamManage:
         opening = cv.morphologyEx(closing, cv.MORPH_OPEN, kernal)
         median = cv.medianBlur(opening, 5)
 
-        return median
+        return median, frame2
 
 
     def stop(self):
@@ -114,17 +120,17 @@ manager.start() #starts running the new thread
 #Main thread
 while True:
     frame = manager.read()
-
     
     #redo the loop unitl frame is captured
     if frame is None:
         continue 
 
     #optimiser
-    frame = manager.preProcessing(frame)
+    frame, frame2 = manager.preProcessing(frame)
     
     #display
-    cv.imshow("video1", frame)
+    cv.imshow("Processed Video", frame)
+    cv.imshow("Original Video", frame2)
     #exit
     exitKey= cv.waitKey(1)
     if exitKey == ord('l'):
