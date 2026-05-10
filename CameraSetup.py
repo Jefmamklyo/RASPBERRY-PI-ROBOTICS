@@ -242,10 +242,10 @@ while True:
     displayFrame = frame.copy()
 
     #optimiser
-    frame  = manager.preProcessing(frame)
+    processedFrame, displayFrame  = manager.preProcessing(frame)
 
     #Find midpoints
-    midpointX, midpointY = manager.centroidCalculations(frame, displayFrame)
+    midpointX, midpointY = manager.centroidCalculations(processedFrame, displayFrame)
 
     #PID calc
     currentTime = time.time()
@@ -254,10 +254,17 @@ while True:
 
     if midpointX is not None:
         correction = pid.update(midpointX, dt)
-        print(correction)
+
+        error = frameCenter - midpointX
+
+        print(f"Correction {correction:.2f}")
+        print(f"Error {error}")
+        print(f"midpoint {midpointX}")
+
+
     
     #display
-    cv.imshow("Processed Video", frame)
+    cv.imshow("Processed Video", processedFrame)
     cv.imshow("Original Video", displayFrame)
     #exit
     exitKey= cv.waitKey(1)
