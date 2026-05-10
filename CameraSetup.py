@@ -81,16 +81,16 @@ class CamManage:
 
         self.srcPoints = np.float32([  #source points muilti dimenstional array
 
-            [0,0], #top left
-            [320,0], #top right
-            [320,320], #bottom right
-            [0,320]   #bottom left
+            [110,140], #top left
+            [210,140], #top right
+            [300,320], #bottom right
+            [20, 320]   #bottom left
             ])
 
         self.dstPoints = np.float32([ #destination points muilti dimenstional array
 
-            [100,50], #top left
-            [220,50], #top right
+            [0,0], #top left
+            [320,0], #top right
             [320,320], #bottom left
             [0,320]    #bottom right   
         ])
@@ -119,8 +119,8 @@ class CamManage:
             return self.frame
 
     #TopDownView function
-    def TopDownView(self,frame, ):
-        warped = cv.warpPerspective(frame, self.HM, (320, 240))
+    def TopDownView(self,frame):
+        warped = frame
         return warped
 
     def frame2(self, frame):
@@ -132,7 +132,7 @@ class CamManage:
 
         #birds eye view
         frame = self.TopDownView(frame)
-        frame2 = self.TopDownView(frame)
+        frame2 = frame.copy()
 
         
         #graysacle
@@ -142,15 +142,16 @@ class CamManage:
         blur = cv.GaussianBlur(gray, (5,5), 0)
 
         #gthresh
-        gThresh = cv.adaptiveThreshold(blur, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY , 11,2)
+        _, thresh = cv.threshold(blur, 180, 255, cv.THRESH_BINARY)
 
         #canny edge detction
-        edges = cv.Canny(gThresh, 50,150)
+        edges = cv.Canny(thresh, 50,150)
       
-        kernal = cv.getStructuringElement(cv.MORPH_ELLIPSE, (2,2))
+        kernal = cv.getStructuringElement(cv.MORPH_RECT, (5,5))
         closing = cv.morphologyEx(edges, cv.MORPH_CLOSE, kernal)
+        opening = cv.morphologyEx(closing, cv.MORPH_OPEN, kernal)
 
-        return closing, frame2
+        return opening, frame2
 
   
 
@@ -168,17 +169,21 @@ class CamManage:
         #get countours in proceed image
         contours, heirarchy = cv.findContours(processedFrame, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
 
+
+        tuningNumber = 50
+
+
         foundCanny = 1
         for x in contours:
             
-            if cv.contourArea(x) > 100:
+            if cv.contourArea(x) > tuningNumber:
                 print(f"Large Canny found: ", foundCanny)
                 foundCanny +=1
 
         centroids = []
         #show contour centroids
         for i in contours:
-            if cv.contourArea(i) > 100:
+            if cv.contourArea(i) > tuningNumber:
                 M = cv.moments(i)
                 if M['m00'] != 0:
                     cx = int(M['m10']/M['m00'])
@@ -188,6 +193,9 @@ class CamManage:
                     appending = [cx,cy]
                     centroids.append(appending)
                     print(f"Controid at x: {cx} y: {cy}")
+
+        midpointX = None
+        midpointY = None
                     
         #find centroids midpoint
         for i in range(len(centroids) - 1):
