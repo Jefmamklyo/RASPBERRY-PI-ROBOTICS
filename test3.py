@@ -110,7 +110,7 @@ class CamManage:
         blur = cv.GaussianBlur(mask, (blurSize, blurSize), 0)
 
         #gthresh
-        _, thresh = cv.threshold(blur, thresholdValue, cv.THRESH_BINARY)
+        _, thresh = cv.threshold(blur, thresholdValue, 255, cv.THRESH_BINARY)
 
         #canny edge detction
       
@@ -136,7 +136,7 @@ class CamManage:
         contours, heirarchy = cv.findContours(processedFrame, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
 
 
-        tuningNumber = 0
+        tuningNumber = 150
 
         largestContours = []
 
@@ -235,15 +235,14 @@ for blurSize in blurGrid:
 
             frameCount = 0
             midpointDetectedFrames = 0
-            while frameCount < 100:
+            while frameCount < 10:
                 frame = manager.read()
-
-                frameCount +=1
 
                 #redo the loop unitl frame is captured
                 if frame is None:
                     continue 
 
+                frameCount +=1
 
                 #for display
                 displayFrame = frame.copy()
@@ -255,8 +254,8 @@ for blurSize in blurGrid:
                 midpointX, midpointY, contourcount = manager.centroidCalculations(processedFrame, displayFrame)
 
 
-
-                if contourcount == 2:
+                print(f"Contours {contourcount}")
+                if contourcount >= 1:
                     midpointDetectedFrames +=1
                 
             successPercent = 0
