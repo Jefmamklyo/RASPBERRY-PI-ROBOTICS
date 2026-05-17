@@ -212,43 +212,68 @@ manager.start() #starts running the new thread
 
 
 #Testing Meterics
-blurGrid = [3,5,7]
-thresholdGrid = [140,180,220]
-kernalGrid = [3,5,7]
+blurGrid = [3,5,7,9]
+thresholdGrid = [120,140,160,180,220]
+kernalGrid = [3,5,7,9]
+
+bestScore = 0
+bestTuningParameters = []
 
 
 #testing each metric
-while True:
+for blurSize in blurGrid:
+    for thresholdValue in thresholdGrid:
+        for kernalSize in kernalGrid:
 
-            frame = manager.read()
-            
-            #redo the loop unitl frame is captured
-            if frame is None:
-                continue 
-
-
-            #for display
-            displayFrame = frame.copy()
-
-            #optimiser
-            processedFrame, displayFrame, maskFrame  = manager.preProcessing(frame)
-
-            #Find midpoints
-            midpointX, midpointY = manager.centroidCalculations(processedFrame, displayFrame)
+            #testing notfications
+            print("Current testing config")
+            print(f"Blur: {blurSize}")
+            print(f"Threshold: {thresholdValue}")
+            print(f"Kernal Size: {kernalSize}")
 
 
-        
-            
-            #display
-            cv.imshow("Processed Video", processedFrame)
-            cv.imshow("Original Video", displayFrame)
-            cv.imshow("Mask", maskFrame)
-            #exit
-            exitKey= cv.waitKey(1)
-            idle = "F"
-            if exitKey == ord('l'):
-                break
+
+            frameCount = 0
+            midpointDetectedFrames = 0
+            for i in range(100):
+                frame = manager.read()
+                
+                #redo the loop unitl frame is captured
+                if frame is None:
+                    continue 
+
+
+                #for display
+                displayFrame = frame.copy()
+
+                #optimiser
+                processedFrame, displayFrame, maskFrame  = manager.preProcessing(frame, blurSize, thresholdValue, kernalSize)
+
+                #Find midpoints
+                midpointX, midpointY = manager.centroidCalculations(processedFrame, displayFrame)
+
+
+                frameCount +=1
+
+                if midpointX is not None:
+                    midpointDetectedFrames +=1
+                
+            successPercent = 0
+            if frameCount > 0:
+                successPercent = (midpointDetectedFrames/ frameCount) * 100
+
+            #get the best value
+            if successPercent > bestScore:
+                bestScore = successPercent
+                bestTuningParameters = [blurSize, thresholdValue, kernalSize]
+
             
 #exit sequence
+
+print("Best Configs")
+print(f"Blur: {bestTuningParameters[0]}")
+print(f"Threshold: {bestTuningParameters[1]}")
+print(f"Kernal: {bestTuningParameters[2]}")
+print(f"SuccesRate: {bestScore:.2f%}")
 manager.stop() #automatically releases the cameras
 cv.destroyAllWindows()
