@@ -136,29 +136,43 @@ class CamManage:
         contours, heirarchy = cv.findContours(processedFrame, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
 
 
-        tuningNumber = 300
+        tuningNumber = 60
 
+        largestContours = []
 
+        #append large contours to a value
         foundCanny = 1
         for x in contours:
             
             if cv.contourArea(x) > tuningNumber:
                 print(f"Large Canny found: ", foundCanny)
                 foundCanny +=1
+                largestContours.append(x)
+
+        
+        #sort contoyurs by size using timesort
+        largestContours = sorted(
+            largestContours,
+            key=cv.contourArea, 
+            reverse = True
+        )
+
+
+        #get the two largest countpurs
+        laneContour = largestContours[:2]
 
         centroids = []
         #show contour centroids
-        for i in contours:
-            if cv.contourArea(i) > tuningNumber:
-                M = cv.moments(i)
-                if M['m00'] != 0:
-                    cx = int(M['m10']/M['m00'])
-                    cy = int(M['m01']/ M['m00'])
-                    cv.drawContours(displayFrame, [i], -1, (0,255,0), 2)
-                    cv.circle(displayFrame, (cx,cy), 7, (0,255,255), -1)
-                    appending = [cx,cy]
-                    centroids.append(appending)
-                    print(f"Controid at x: {cx} y: {cy}")
+        for i in laneContour:
+            M = cv.moments(i)
+            if M['m00'] != 0:
+                cx = int(M['m10']/M['m00'])
+                cy = int(M['m01']/ M['m00'])
+                cv.drawContours(displayFrame, [i], -1, (0,255,0), 2)
+                cv.circle(displayFrame, (cx,cy), 7, (0,255,255), -1)
+                appending = [cx,cy]
+                centroids.append(appending)
+                print(f"Controid at x: {cx} y: {cy}")
 
         midpointX = None
         midpointY = None
