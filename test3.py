@@ -235,7 +235,7 @@ for blurSize in blurGrid:
 
             frameCount = 0
             midpointDetectedFrames = 0
-            while frameCount < 10:
+            while frameCount < 100:
                 frame = manager.read()
 
                 #redo the loop unitl frame is captured
@@ -255,7 +255,7 @@ for blurSize in blurGrid:
 
 
                 print(f"Contours {contourcount}")
-                if contourcount >= 1:
+                if contourcount == 2:
                     midpointDetectedFrames +=1
                 
             successPercent = 0
