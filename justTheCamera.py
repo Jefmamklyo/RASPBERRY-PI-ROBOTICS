@@ -132,11 +132,11 @@ class CamManage:
     ####Lane Detection ########
     ###########################
     def centroidCalculations(self, processedFrame, displayFrame):
-        #get countours in proceed image
+        #get countours in proceed imagel
         contours, heirarchy = cv.findContours(processedFrame, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
 
 
-        tuningNumber = 60
+        tuningNumber = 0
 
         largestContours = []
 
@@ -228,7 +228,7 @@ while True:
     processedFrame, displayFrame, maskFrame  = manager.preProcessing(frame)
 
     #Find midpoints
-    midpointX, midpointY = manager.centroidCalculations(processedFrame, displayFrame)
+    midpointX, midpointY = manager.centroidCalculations(maskFrame, displayFrame)
 
 
    

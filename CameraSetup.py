@@ -282,15 +282,22 @@ while True:
 
     if midpointX is not None:
         correction = pid.update(midpointX, dt)
+        #serial spam issue
+        lastSend = 0
+        sendInterval = 0.1 #ms
 
+        
         if correction > 20:
             command = "L"
-        if correction < -20:
+        elif correction < -20:
             command = "R"
         else: 
             command = "F"
 
-        ser.write(command.encode('utf-8')) 
+        if time.time() - lastSend > sendInterval:    
+
+            ser.write(command.encode('utf-8')) 
+            lastSend = time.time()
 
 
 
@@ -310,7 +317,9 @@ while True:
     cv.imshow("Mask", maskFrame)
     #exit
     exitKey= cv.waitKey(1)
+    idle = "F"
     if exitKey == ord('l'):
+        ser.write(idle.encode('utf-8')) 
         break
     
 #exit sequence
