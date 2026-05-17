@@ -136,7 +136,7 @@ class CamManage:
         contours, heirarchy = cv.findContours(processedFrame, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
 
 
-        tuningNumber = 300
+        tuningNumber = 0
 
         largestContours = []
 
@@ -187,7 +187,7 @@ class CamManage:
 
 
 
-        return midpointX, midpointY
+        return midpointX, midpointY, len(laneContour)
         #loop and calcuatie centroid for each one
         
 
@@ -217,7 +217,7 @@ thresholdGrid = [120,140,160,180,220]
 kernalGrid = [3,5,7,9]
 
 bestScore = 0
-bestTuningParameters = []
+bestTuningParameters = [0,0,0]
 
 
 #testing each metric
@@ -235,9 +235,11 @@ for blurSize in blurGrid:
 
             frameCount = 0
             midpointDetectedFrames = 0
-            for i in range(100):
+            while frameCount < 100:
                 frame = manager.read()
-                
+
+                frameCount +=1
+
                 #redo the loop unitl frame is captured
                 if frame is None:
                     continue 
@@ -250,17 +252,15 @@ for blurSize in blurGrid:
                 processedFrame, displayFrame, maskFrame  = manager.preProcessing(frame, blurSize, thresholdValue, kernalSize)
 
                 #Find midpoints
-                midpointX, midpointY = manager.centroidCalculations(processedFrame, displayFrame)
+                midpointX, midpointY, contourcount = manager.centroidCalculations(processedFrame, displayFrame)
 
 
-                frameCount +=1
 
-                if midpointX is not None:
+                if contourcount == 2:
                     midpointDetectedFrames +=1
                 
             successPercent = 0
-            if frameCount > 0:
-                successPercent = (midpointDetectedFrames/ frameCount) * 100
+            successPercent = (midpointDetectedFrames/ 100) * 100
 
             #get the best value
             if successPercent > bestScore:
@@ -270,10 +270,12 @@ for blurSize in blurGrid:
             
 #exit sequence
 
+print("\n")
+print("\n")
 print("Best Configs")
 print(f"Blur: {bestTuningParameters[0]}")
 print(f"Threshold: {bestTuningParameters[1]}")
 print(f"Kernal: {bestTuningParameters[2]}")
-print(f"SuccesRate: {bestScore:.2f%}")
+print(f"SuccesRate: {bestScore:.2f}")
 manager.stop() #automatically releases the cameras
 cv.destroyAllWindows()
